@@ -1,0 +1,18 @@
+OK
+OK
+OK
+OK
+COMMIT OK
+OK
+OK
+OK
+OK
+OK
+COMMIT OK
+OK
+A.bar = 10
+B.bar = 40
+C.bar = 60
+D.bar = 40
+E.bar = 50
+COMMIT OK

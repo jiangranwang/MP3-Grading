@@ -1,0 +1,11 @@
+OK
+OK
+OK
+OK
+OK
+OK
+COMMIT OK
+OK
+A.fff = 5
+B.fff = 5
+COMMIT OK
