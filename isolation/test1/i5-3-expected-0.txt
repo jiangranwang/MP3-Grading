@@ -1,0 +1,3 @@
+OK
+A.bb = 25
+COMMIT OK
