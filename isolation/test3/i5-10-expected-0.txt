@@ -1,0 +1,3 @@
+OK
+A.hh = 20
+COMMIT OK

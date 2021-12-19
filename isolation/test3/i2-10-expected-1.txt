@@ -1,0 +1,3 @@
+OK
+B.gg = 10
+COMMIT OK

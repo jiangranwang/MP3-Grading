@@ -1,0 +1,3 @@
+OK
+A.gg = 10
+COMMIT OK
