@@ -10,4 +10,4 @@ for r in range(5):
 		with open('i'+str(num_client)+'-3-'+str(r)+'.txt', 'w') as f:
 			f.write('BEGIN\nBALANCE '+account+'\nCOMMIT')
 		with open('i'+str(num_client)+'-3-expected-'+str(r)+'.txt', 'w') as f:
-			f.write('OK\n'+account+' = '+str(5*num_client)+'\nCOMMIT OK')
+			f.write('OK\n'+account+' = '+str(5*num_client)+'\nCOMMIT OK\n')

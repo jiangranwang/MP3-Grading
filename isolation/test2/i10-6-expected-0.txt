@@ -1,0 +1,3 @@
+OK
+A.ff = 1000
+COMMIT OK
