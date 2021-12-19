@@ -5,7 +5,7 @@ OK
 A.foo = 10
 OK
 A.foo = 30
-ABORT
+ABORTED
 OK
 A.foo = 10
 COMMIT OK
