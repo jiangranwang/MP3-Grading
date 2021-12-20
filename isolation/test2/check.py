@@ -8,10 +8,9 @@ for client in range(num_client):
 	run_file = run_files[client]
 	prev_val = None
 	count = 0
-	while True:
-		if not os.path.isfile(file):
-			print('\033[93m' + 'client '+client+' file does not exist' + '\033[0m')
-			sys.exit()
+	if not os.path.isfile(run_file):
+		print('\033[93m' + 'client '+client+' file does not exist' + '\033[0m')
+		sys.exit()
 	with open(run_file, 'r') as f:
 		lines = f.readlines()
 		for l in lines:
