@@ -23,18 +23,18 @@ i2.txt - i-11.txt: each client write to different accounts 10 times and limit ex
 i12.txt: check final balance of all accounts with i12-expected.txt
 
 ### N clients write twice to single account (2, 3, 5 points for N=2, 5, 10)
-iN-1.txt: initialize account x
+iN-1.txt: initialize account x 10
 
 iN-2.txt: deposit 10 x, withdraw 5 x
 
 iN-3.txt: display balance of account x
 
-Compare the output of iN-3.txt with iN-3-expected.txt (final value should be 5N)
+Compare the output of iN-3.txt with iN-3-expected.txt (final value should be 5N+10)
 
 N={2,5,10}, run in the order of iN-1.txt -> NxiN-2.txt -> iN-3.txt
 
 ### N clients read/write multiple times to single account (2, 3, 5 points for N=2, 5, 10)
-iN-4.txt: initialize account x
+iN-4.txt: initialize account x 10
 
 iN-5.txt: deposit 10 x, balance x, deposit 10 x, balance x... (repeat 10 times, the output of ten balance commands should each have a difference of 10, i.e. y, y+10, y+20...)
 
@@ -42,7 +42,7 @@ Compare the output of iN-5.txt with iN-5-expected.txt
 
 iN-6.txt: display balance of account x
 
-Compare the output of iN-6.txt with iN-6-expected.txt (Final value should be 100N)
+Compare the output of iN-6.txt with iN-6-expected.txt (Final value should be 100N+10)
 
 N={2,5,10}, run in the order of iN-4.txt -> NxiN-5.txt -> iN-6.txt
 

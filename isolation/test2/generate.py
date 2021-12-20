@@ -4,7 +4,7 @@ for r in range(5):
 	for i, num_client in enumerate([2,5,10]):
 		account = servers[r] + '.' + acs[i]
 		with open('i'+str(num_client)+'-4-'+str(r)+'.txt', 'w') as f:
-			f.write('BEGIN\nDEPOSIT '+account+' 0\nCOMMIT')
+			f.write('BEGIN\nDEPOSIT '+account+' 10\nCOMMIT')
 		with open('i'+str(num_client)+'-5-'+str(r)+'.txt', 'w') as f:
 			commands = 'BEGIN\n'
 			for _ in range(10):
@@ -14,4 +14,4 @@ for r in range(5):
 		with open('i'+str(num_client)+'-6-'+str(r)+'.txt', 'w') as f:
 			f.write('BEGIN\nBALANCE '+account+'\nCOMMIT')
 		with open('i'+str(num_client)+'-6-expected-'+str(r)+'.txt', 'w') as f:
-			f.write('OK\n'+account+' = '+str(100*num_client)+'\nCOMMIT OK\n')
+			f.write('OK\n'+account+' = '+str(100*num_client+10)+'\nCOMMIT OK\n')

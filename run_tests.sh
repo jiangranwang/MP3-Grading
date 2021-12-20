@@ -1,30 +1,45 @@
 #!/bin/bash
-group_folder='../g8'
+group=12
+group_folder='../g'$group
 curr_folder='../tests'
 test_isolation=1 # 0 for not testing and 1 for testing
 num_run=5 # number of run for isolation tests
+client2_limit=5
+client5_limit=10
+client10_limit=20
 
 clients=(a b c d e f g h i j k l m n)
 servers=(A B C D E)
+vms=('hal-login2.ncsa.illinois.edu', 
+	 'fa21-cs425-adm.cs.illinois.edu', 
+	 'fa21-cs425-g01-01.cs.illinois.edu', 
+	 'fa21-cs425-g01-03.cs.illinois.edu', 
+	 'fa21-cs425-g01-04.cs.illinois.edu')
 server_pids=()
+RED='\033[0;31m'
+NC='\033[0m'
 
 final_score=0
 rm ../result.txt
 touch ../result.txt
 
 cp config.txt ${group_folder}/
-cd $group_folder
-for server in ${servers[@]}; do
-	./server $server config.txt > ../server_${server}.log 2>&1 &
-	server_pids+=($!)
+for vm in ${vms[@]}; do
+	scp -r ${group_folder}/ jw22@$vm:mp3/
 done
-cd $curr_folder
+
+# cd $group_folder
+# for server in ${servers[@]}; do
+# 	./server $server config.txt > ../server_${server}.log 2>&1 &
+# 	server_pids+=($!)
+# done
+# cd $curr_folder
 
 # Final copy files
 cleanup () {
-	for pid in ${server_pids[@]}; do
-		kill $pid
-	done
+	# for pid in ${server_pids[@]}; do
+	# 	kill $pid
+	# done
 
 	echo 'Final Score: '$final_score
 	echo 'Final score is: '$final_score >> ../result.txt
@@ -49,8 +64,6 @@ cleanup () {
 }
 
 trap cleanup exit
-RED='\033[0;31m'
-NC='\033[0m'
 
 # Atomicity Test 1 (8)
 atest1 () {
@@ -225,10 +238,13 @@ itest1 () {
 	cd ${group_folder}
 	if [[ $1 -eq 2 ]]; then
 		score=2
+		limit=$client2_limit
 	elif [[ $1 -eq 5 ]]; then
 		score=3
+		limit=$client5_limit
 	elif [[ $1 -eq 10 ]]; then
 		score=5
+		limit=$client10_limit
 	fi
 
 	for (( i=0; i<$num_run; i++ )); do
@@ -236,7 +252,7 @@ itest1 () {
 		pids=()
 		timeout 5s ./client a config.txt < ../tests/isolation/test1/i$1-1-$i.txt > ../i1-$1-$i-00.log 2>&1
 		for (( j=0; j<$1; j++ )); do
-			timeout $1s ./client ${clients[$j]} config.txt < ../tests/isolation/test1/i$1-2-$i.txt > ../i1-$1-$i-$j.log 2>&1 &
+			timeout ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test1/i$1-2-$i.txt > ../i1-$1-$i-$j.log 2>&1 &
 			pids+=($!)
 		done
 		for pid in ${pids[@]}; do
@@ -266,10 +282,13 @@ itest2 () {
 	cd ${group_folder}
 	if [[ $1 -eq 2 ]]; then
 		score=2
+		limit=$client2_limit
 	elif [[ $1 -eq 5 ]]; then
 		score=3
+		limit=$client5_limit
 	elif [[ $1 -eq 10 ]]; then
 		score=5
+		limit=$client10_limit
 	fi
 
 	for (( i=0; i<$num_run; i++ )); do
@@ -277,7 +296,7 @@ itest2 () {
 		pids=()
 		./client a config.txt < ../tests/isolation/test2/i$1-4-$i.txt > ../i2-$1-$i-00.log 2>&1
 		for (( j=0; j<$1; j++ )); do
-			timeout $1s ./client ${clients[$j]} config.txt < ../tests/isolation/test2/i$1-5-$i.txt > ../i2-$1-$i-$j.log 2>&1 &
+			timeout ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test2/i$1-5-$i.txt > ../i2-$1-$i-$j.log 2>&1 &
 			pids+=($!)
 		done
 		for pid in ${pids[@]}; do
@@ -311,31 +330,34 @@ itest3 () {
 		abort=1
 		write=1
 		read=0
+		limit=$client2_limit
 	elif [[ $1 -eq 5 ]]; then
 		score=3
 		abort=2
 		write=2
 		read=1
+		limit=$client5_limit
 	elif [[ $1 -eq 10 ]]; then
 		score=5
 		abort=4
 		write=4
 		read=2
+		limit=$client10_limit
 	fi
 	
 	for (( i=0; i<$num_run; i++ )); do
 		echo 'run num: '$i
 		pids=()
 		for (( j=0; j<$abort; j++ )); do
-			timeout $1s ./client ${clients[$j]} config.txt < ../tests/isolation/test3/i$1-7-$i.txt > ../i3-$1-$i-$j.log 2>&1 &
+			timeout ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test3/i$1-7-$i.txt > ../i3-$1-$i-$j.log 2>&1 &
 			pids+=($!)
 		done
 		for (( j=$abort; j<$write+$abort; j++ )); do
-			timeout $1s ./client ${clients[$j]} config.txt < ../tests/isolation/test3/i$1-8-$i.txt > ../i3-$1-$i-$j.log 2>&1 &
+			timeout ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test3/i$1-8-$i.txt > ../i3-$1-$i-$j.log 2>&1 &
 			pids+=($!)
 		done
 		for (( j=$write+$abort; j<$read+$write+$abort; j++ )); do
-			timeout $1s ./client ${clients[$j]} config.txt < ../tests/isolation/test3/i$1-9-$i.txt > ../i3-$1-$i-$j.log 2>&1 &
+			timeout ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test3/i$1-9-$i.txt > ../i3-$1-$i-$j.log 2>&1 &
 			pids+=($!)
 		done
 		for pid in ${pids[@]}; do
@@ -366,17 +388,20 @@ dtest () {
 	cd ${group_folder}
 	if [[ $1 -eq 2 ]]; then
 		score=2
+		limit=$client2_limit
 	elif [[ $1 -eq 5 ]]; then
 		score=3
+		limit=$client5_limit
 	elif [[ $1 -eq 10 ]]; then
 		score=5
+		limit=$client10_limit
 	fi
 
 	for (( i=0; i<$num_run; i++ )); do
 		echo 'run num: '$i
 		pids=()
 		for (( j=0; j<$1; j++ )); do
-			timeout $1s ./client ${clients[$j]} config.txt < ../tests/deadlock/d$1-$j-$i.txt > ../d$1-$j-$i.log 2>&1 &
+			timeout ${limit}s ./client ${clients[$j]} config.txt < ../tests/deadlock/d$1-$j-$i.txt > ../d$1-$j-$i.log 2>&1 &
 			pids+=($!)
 		done
 		for pid in ${pids[@]}; do
