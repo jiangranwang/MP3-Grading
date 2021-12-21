@@ -1,5 +1,5 @@
-A hal-login2.ncsa.illinois.edu 1234
-B fa21-cs425-adm.cs.illinois.edu 1234
-C fa21-cs425-g01-01.cs.illinois.edu 1234
+A fa21-cs425-adm.cs.illinois.edu 1234
+B fa21-cs425-g01-01.cs.illinois.edu 1234
+C fa21-cs425-g01-02.cs.illinois.edu 1234
 D fa21-cs425-g01-03.cs.illinois.edu 1234
 E fa21-cs425-g01-04.cs.illinois.edu 1234

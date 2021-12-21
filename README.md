@@ -1,9 +1,13 @@
 ## Atomicity Tests
-a1.txt: abort pre-exisiting account (8 points)
+a1.txt: abort pre-exisiting account (4 points)
 
-a2.txt: abort newly created account (8 points)
+a2.txt: abort newly created account (4 points)
 
 a3.txt: ignore commands outside transactions (4 points)
+
+a4.txt: basic test with one deposit command (4 points)
+
+a5.txt: basic test with one deposit and one balance command (4 points)
 
 ## Consistency Tests
 c1.txt: transaction involving multiple servers (8 points)

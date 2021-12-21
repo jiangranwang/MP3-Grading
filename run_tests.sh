@@ -1,21 +1,16 @@
 #!/bin/bash
-group=12
+group=2
 group_folder='../g'$group
 curr_folder='../tests'
-test_isolation=1 # 0 for not testing and 1 for testing
 num_run=5 # number of run for isolation tests
+local=0
 client2_limit=5
 client5_limit=10
 client10_limit=20
 
 clients=(a b c d e f g h i j k l m n)
 servers=(A B C D E)
-vms=('hal-login2.ncsa.illinois.edu', 
-	 'fa21-cs425-adm.cs.illinois.edu', 
-	 'fa21-cs425-g01-01.cs.illinois.edu', 
-	 'fa21-cs425-g01-03.cs.illinois.edu', 
-	 'fa21-cs425-g01-04.cs.illinois.edu')
-server_pids=()
+vms=('fa21-cs425-adm.cs.illinois.edu' 'fa21-cs425-g01-01.cs.illinois.edu' 'fa21-cs425-g01-02.cs.illinois.edu' 'fa21-cs425-g01-03.cs.illinois.edu' 'fa21-cs425-g01-04.cs.illinois.edu')
 RED='\033[0;31m'
 NC='\033[0m'
 
@@ -23,23 +18,29 @@ final_score=0
 rm ../result.txt
 touch ../result.txt
 
-cp config.txt ${group_folder}/
-for vm in ${vms[@]}; do
-	scp -r ${group_folder}/ jw22@$vm:mp3/
-done
-
-# cd $group_folder
-# for server in ${servers[@]}; do
-# 	./server $server config.txt > ../server_${server}.log 2>&1 &
-# 	server_pids+=($!)
-# done
-# cd $curr_folder
+if [[ $local -eq 1 ]]; then
+	server_pids=()
+	cd $group_folder
+	for server in ${servers[@]}; do
+		./server $server config.txt > ../server_${server}.log 2>&1 &
+		server_pids+=($!)
+	done
+	cd $curr_folder
+else
+	cp config.txt ${group_folder}/
+	for vm in ${vms[@]}; do
+		scp -r ${group_folder}/ jw22@$vm:mp3/
+	done
+	read -p "Wait for servers..." yn
+fi
 
 # Final copy files
 cleanup () {
-	# for pid in ${server_pids[@]}; do
-	# 	kill $pid
-	# done
+	if [[ $local -eq 1 ]]; then
+		for pid in ${server_pids[@]}; do
+			kill $pid
+		done
+	fi
 
 	echo 'Final Score: '$final_score
 	echo 'Final score is: '$final_score >> ../result.txt
@@ -65,67 +66,21 @@ cleanup () {
 
 trap cleanup exit
 
-# Atomicity Test 1 (8)
-atest1 () {
-	cd ${group_folder}
-	score=8
-
-	timeout 5s ./client a config.txt < ../tests/atomicity/a1.txt > ../a1.log 2>&1
-	if [[ $? -eq 124 ]]; then
-		echo -e "${RED}Timed out: process did not complete within 5 seconds${NC}"
-		echo 'Atomicity 1 Test timed out' >> ../result.txt
-		return
-	fi
-	diff ../a1.log ../tests/atomicity/a1-expected.txt
-
-	read -p "Atomicity 1 Test Passed? (y/n)" yn
-	echo 'Atomicity Test 1: ' >> ../result.txt
-	case $yn in
-		[Nn]* ) echo 'Test Failed' >> ../result.txt;;
-	    * ) final_score=$(( $final_score+$score )); echo 'Test Passed ('$score' points)' >> ../result.txt;;
-	esac
-	cd ${curr_folder}
-	echo; echo;
-}
-
-# Atomicity Test 2 (8)
-atest2 () {
-	cd ${group_folder}
-	score=8
-
-	timeout 5s ./client a config.txt < ../tests/atomicity/a2.txt > ../a2.log 2>&1
-	if [[ $? -eq 124 ]]; then
-		echo -e "${RED}Timed out: process did not complete within 5 seconds${NC}"
-		echo 'Atomicity 2 Test timed out' >> ../result.txt
-		return
-	fi
-	diff ../a2.log ../tests/atomicity/a2-expected.txt
-
-	read -p "Atomicity 2 Test Passed? (y/n)" yn
-	echo 'Atomicity Test 2: ' >> ../result.txt
-	case $yn in
-		[Nn]* ) echo 'Test Failed' >> ../result.txt;;
-	    * ) final_score=$(( $final_score+$score )); echo 'Test Passed ('$score' points)' >> ../result.txt;;
-	esac
-	cd ${curr_folder}
-	echo; echo;
-}
-
-# Atomicity Test 3 (4)
-atest3 () {
+# Atomicity Tests (4)
+atests () {
 	cd ${group_folder}
 	score=4
 
-	timeout 5s ./client a config.txt < ../tests/atomicity/a3.txt > ../a3.log 2>&1
+	timeout 5s ./client a config.txt < ../tests/atomicity/a$1.txt > ../a$1.log 2>&1
 	if [[ $? -eq 124 ]]; then
 		echo -e "${RED}Timed out: process did not complete within 5 seconds${NC}"
-		echo 'Atomicity 3 Test timed out' >> ../result.txt
+		echo "Atomicity $1 Test timed out" >> ../result.txt
 		return
 	fi
-	diff ../a3.log ../tests/atomicity/a3-expected.txt
+	diff ../a$1.log ../tests/atomicity/a$1-expected.txt
 
-	read -p "Atomicity 3 Test Passed? (y/n)" yn
-	echo 'Atomicity Test 3: ' >> ../result.txt
+	read -p "Atomicity $1 Test Passed? (y/n)" yn
+	echo "Atomicity Test $1: " >> ../result.txt
 	case $yn in
 		[Nn]* ) echo 'Test Failed' >> ../result.txt;;
 	    * ) final_score=$(( $final_score+$score )); echo 'Test Passed ('$score' points)' >> ../result.txt;;
@@ -426,30 +381,30 @@ dtest () {
 
 
 # Atomicity Tests
-atest1
-atest2
-atest3
+atests 1
+atests 2
+atests 3
+atests 4
+atests 5
 
 # Consistency Tests
 ctest1
 ctest2
 ctest3
 
-if [[ $test_isolation -eq 1 ]]; then
-	# Isolation Test
-	tlimit
-	itest1 2
-	itest1 5
-	itest1 10
-	itest2 2
-	itest2 5
-	itest2 10
-	itest3 2
-	itest3 5
-	itest3 10
+# Isolation Test
+tlimit
+itest1 2
+itest1 5
+itest1 10
+itest2 2
+itest2 5
+itest2 10
+itest3 2
+itest3 5
+itest3 10
 
-	# Deadlock Test
-	dtest 2
-	dtest 5
-	dtest 10
-fi
+# Deadlock Test
+dtest 2
+dtest 5
+dtest 10
