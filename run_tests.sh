@@ -10,7 +10,7 @@ client10_limit=20
 
 clients=(a b c d e f g h i j k l m n)
 servers=(A B C D E)
-vms=('fa21-cs425-adm.cs.illinois.edu' 'fa21-cs425-g01-01.cs.illinois.edu' 'fa21-cs425-g01-02.cs.illinois.edu' 'fa21-cs425-g01-03.cs.illinois.edu' 'fa21-cs425-g01-04.cs.illinois.edu')
+vms=('fa21-cs425-g01-02.cs.illinois.edu' 'fa21-cs425-g01-03.cs.illinois.edu' 'fa21-cs425-g01-04.cs.illinois.edu' 'fa21-cs425-g01-05.cs.illinois.edu')
 RED='\033[0;31m'
 NC='\033[0m'
 
@@ -39,6 +39,11 @@ cleanup () {
 	if [[ $local -eq 1 ]]; then
 		for pid in ${server_pids[@]}; do
 			kill $pid
+		done
+	else
+		cp ${group_folder}/*.log ${grade_folder}/
+		for vm in ${vms[@]}; do
+			scp jw22@$vm:mp3/g${group}/*.log ${grade_folder}/
 		done
 	fi
 
