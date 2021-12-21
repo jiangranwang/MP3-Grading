@@ -1,3 +1,3 @@
 OK
-B.ii = 40
+D.ii = 40
 COMMIT OK

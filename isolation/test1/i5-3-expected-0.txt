@@ -1,3 +1,2 @@
 OK
-A.bb = 35
-COMMIT OK
+A.bb = 60

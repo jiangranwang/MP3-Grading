@@ -1,3 +1,0 @@
-OK
-E.gg = 10
-COMMIT OK

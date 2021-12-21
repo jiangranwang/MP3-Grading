@@ -1,3 +1,2 @@
 OK
-A.ff = 1010
-COMMIT OK
+B.ff = 210

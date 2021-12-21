@@ -1,3 +1,0 @@
-OK
-C.aa = 20
-COMMIT OK

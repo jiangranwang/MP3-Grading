@@ -1,3 +1,0 @@
-OK
-D.ii = 40
-COMMIT OK

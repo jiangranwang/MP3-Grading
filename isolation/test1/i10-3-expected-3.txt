@@ -1,3 +1,0 @@
-OK
-D.cc = 60
-COMMIT OK

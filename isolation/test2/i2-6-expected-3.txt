@@ -1,3 +1,0 @@
-OK
-D.dd = 210
-COMMIT OK

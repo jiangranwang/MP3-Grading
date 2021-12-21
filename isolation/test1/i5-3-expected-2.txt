@@ -1,3 +1,0 @@
-OK
-C.bb = 35
-COMMIT OK

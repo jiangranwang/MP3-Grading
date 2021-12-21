@@ -1,3 +1,0 @@
-OK
-C.gg = 10
-COMMIT OK

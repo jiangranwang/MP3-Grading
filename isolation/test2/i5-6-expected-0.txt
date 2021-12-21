@@ -1,3 +1,2 @@
 OK
-A.ee = 510
-COMMIT OK
+B.ee = 110

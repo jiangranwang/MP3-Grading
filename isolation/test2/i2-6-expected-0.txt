@@ -1,3 +1,2 @@
 OK
-A.dd = 210
-COMMIT OK
+B.dd = 50

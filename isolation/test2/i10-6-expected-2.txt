@@ -1,3 +1,0 @@
-OK
-C.ff = 1010
-COMMIT OK
