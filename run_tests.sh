@@ -1,16 +1,17 @@
 #!/bin/bash
-group=2
+group=13
 group_folder='../g'$group
 curr_folder='../tests'
 num_run=5 # number of run for isolation tests
 local=0
+global_limit=5
 client2_limit=5
 client5_limit=10
-client10_limit=20
+client10_limit=15
 
 clients=(a b c d e f g h i j k l m n)
 servers=(A B C D E)
-vms=('fa21-cs425-g01-02.cs.illinois.edu' 'fa21-cs425-g01-03.cs.illinois.edu' 'fa21-cs425-g01-04.cs.illinois.edu' 'fa21-cs425-g01-05.cs.illinois.edu')
+vms=('fa21-cs425-g01-01.cs.illinois.edu' 'fa21-cs425-g01-02.cs.illinois.edu' 'fa21-cs425-g01-03.cs.illinois.edu' 'fa21-cs425-g01-04.cs.illinois.edu' 'fa21-cs425-g01-05.cs.illinois.edu')
 RED='\033[0;31m'
 NC='\033[0m'
 
@@ -28,7 +29,8 @@ if [[ $local -eq 1 ]]; then
 	cd $curr_folder
 else
 	cp config.txt ${group_folder}/
-	for vm in ${vms[@]}; do
+	for (( i=1; i<5; i++ )); do
+		vm=${vms[$i]}
 		scp -r ${group_folder}/ jw22@$vm:mp3/
 	done
 	read -p "Wait for servers..." yn
@@ -36,22 +38,23 @@ fi
 
 # Final copy files
 cleanup () {
+        grade_folder=${group_folder}'-grade/'
+        mkdir $grade_folder
 	if [[ $local -eq 1 ]]; then
 		for pid in ${server_pids[@]}; do
 			kill $pid
 		done
 	else
 		cp ${group_folder}/*.log ${grade_folder}/
-		for vm in ${vms[@]}; do
-			scp jw22@$vm:mp3/g${group}/*.log ${grade_folder}/
+		for (( i=1; i<5; i++ )); do
+			vm=${vms[$i]}
+			scp jw22@$vm:mp3/g${group}/server_${servers[$i]}.log ${grade_folder}/
 		done
 	fi
 
 	echo 'Final Score: '$final_score
 	echo 'Final score is: '$final_score >> ../result.txt
-	
-	grade_folder=${group_folder}'-grade/'
-	mkdir $grade_folder
+
 	mkdir $grade_folder/atomicity/
 	mv ../a*.log $grade_folder/atomicity/
 	mkdir $grade_folder/consistency/
@@ -76,11 +79,10 @@ atests () {
 	cd ${group_folder}
 	score=4
 
-	timeout 5s ./client a config.txt < ../tests/atomicity/a$1.txt > ../a$1.log 2>&1
+	timeout ${global_limit}s ./client a config.txt < ../tests/atomicity/a$1.txt > ../a$1.log 2>&1
 	if [[ $? -eq 124 ]]; then
 		echo -e "${RED}Timed out: process did not complete within 5 seconds${NC}"
 		echo "Atomicity $1 Test timed out" >> ../result.txt
-		return
 	fi
 	diff ../a$1.log ../tests/atomicity/a$1-expected.txt
 
@@ -99,11 +101,10 @@ ctest1 () {
 	cd ${group_folder}
 	score=8
 
-	timeout 5s ./client a config.txt < ../tests/consistency/c1.txt > ../c1.log 2>&1
+	timeout ${global_limit}s ./client a config.txt < ../tests/consistency/c1.txt > ../c1.log 2>&1
 	if [[ $? -eq 124 ]]; then
 		echo -e "${RED}Timed out: process did not complete within 5 seconds${NC}"
 		echo 'Consistency 1 Test timed out' >> ../result.txt
-		return
 	fi
 	diff ../c1.log ../tests/consistency/c1-expected.txt
 
@@ -122,11 +123,10 @@ ctest2 () {
 	cd ${group_folder}
 	score=6
 
-	timeout 5s ./client a config.txt < ../tests/consistency/c2.txt > ../c2.log 2>&1
+	timeout ${global_limit}s ./client a config.txt < ../tests/consistency/c2.txt > ../c2.log 2>&1
 	if [[ $? -eq 124 ]]; then
 		echo -e "${RED}Timed out: process did not complete within 5 seconds${NC}"
 		echo 'Consistency 2 Test timed out' >> ../result.txt
-		return
 	fi
 	diff ../c2.log ../tests/consistency/c2-expected.txt
 
@@ -145,11 +145,10 @@ ctest3 () {
 	cd ${group_folder}
 	score=6
 
-	timeout 5s ./client a config.txt < ../tests/consistency/c3.txt > ../c3.log 2>&1
+	timeout ${global_limit}s ./client a config.txt < ../tests/consistency/c3.txt > ../c3.log 2>&1
 	if [[ $? -eq 124 ]]; then
 		echo -e "${RED}Timed out: process did not complete within 5 seconds${NC}"
 		echo 'Consistency 3 Test timed out' >> ../result.txt
-		return
 	fi
 	diff ../c3.log ../tests/consistency/c3-expected.txt
 
@@ -218,7 +217,7 @@ itest1 () {
 		for pid in ${pids[@]}; do
 			wait $pid
 			if [[ $? -eq 124 ]]; then
-				echo -e "${RED}Timed out: process did not complete within $1 seconds${NC}"
+				echo -e "${RED}Timed out: process did not complete within $limit seconds${NC}"
 				echo 'Isolation 1 Test timed out' >> ../result.txt
 			fi
 		done
@@ -254,7 +253,7 @@ itest2 () {
 	for (( i=0; i<$num_run; i++ )); do
 		echo 'run num: '$i
 		pids=()
-		./client a config.txt < ../tests/isolation/test2/i$1-4-$i.txt > ../i2-$1-$i-00.log 2>&1
+		timeout 5s ./client a config.txt < ../tests/isolation/test2/i$1-4-$i.txt > ../i2-$1-$i-00.log 2>&1
 		for (( j=0; j<$1; j++ )); do
 			timeout ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test2/i$1-5-$i.txt > ../i2-$1-$i-$j.log 2>&1 &
 			pids+=($!)
@@ -262,12 +261,12 @@ itest2 () {
 		for pid in ${pids[@]}; do
 			wait $pid
 			if [[ $? -eq 124 ]]; then
-				echo -e "${RED}Timed out: process did not complete within $1 seconds${NC}"
+				echo -e "${RED}Timed out: process did not complete within $limit seconds${NC}"
 				echo 'Isolation 2 Test timed out' >> ../result.txt
 			fi
 		done
 		python3 ../tests/isolation/test2/check.py $j ../i2-$1-$i
-		./client a config.txt < ../tests/isolation/test2/i$1-6-$i.txt > ../i2-$1-$i.log 2>&1
+		timeout 5s ./client a config.txt < ../tests/isolation/test2/i$1-6-$i.txt > ../i2-$1-$i.log 2>&1
 		diff ../i2-$1-$i.log ../tests/isolation/test2/i$1-6-expected-$i.txt
 		echo
 	done
@@ -323,12 +322,12 @@ itest3 () {
 		for pid in ${pids[@]}; do
 			wait $pid
 			if [[ $? -eq 124 ]]; then
-				echo -e "${RED}Timed out: process did not complete within $1 seconds${NC}"
+				echo -e "${RED}Timed out: process did not complete within $limit seconds${NC}"
 				echo 'Isolation 3 Test timed out' >> ../result.txt
 			fi
 		done
 		python3 ../tests/isolation/test3/check.py $read ../i3-$1-$i
-		./client a config.txt < ../tests/isolation/test3/i$1-10-$i.txt > ../i3-$1-$i.log 2>&1
+		timeout 5s ./client a config.txt < ../tests/isolation/test3/i$1-10-$i.txt > ../i3-$1-$i.log 2>&1
 		diff ../i3-$1-$i.log ../tests/isolation/test3/i$1-10-expected-$i.txt
 		echo
 	done
@@ -367,7 +366,7 @@ dtest () {
 		for pid in ${pids[@]}; do
 			wait $pid
 			if [[ $? -eq 124 ]]; then
-				echo -e "${RED}Timed out: process did not complete within $1 seconds${NC}"
+				echo -e "${RED}Timed out: process did not complete within $limit seconds${NC}"
 				echo 'Deadlock Test timed out' >> ../result.txt
 			fi
 		done
@@ -397,8 +396,7 @@ ctest1
 ctest2
 ctest3
 
-# Isolation Test
-tlimit
+# Isolation Tests
 itest1 2
 itest1 5
 itest1 10
@@ -408,8 +406,10 @@ itest2 10
 itest3 2
 itest3 5
 itest3 10
+tlimit
 
-# Deadlock Test
+# Deadlock Tests
 dtest 2
 dtest 5
 dtest 10
+
