@@ -23,7 +23,7 @@ for r in range(2):
 	with open('i5-8-'+str(r)+'.txt', 'w') as f:
 		f.write('BEGIN\nDEPOSIT '+account+' 10\nCOMMIT\n')
 	with open('i5-9-'+str(r)+'.txt', 'w') as f:
-		f.write('BEGIN\nBALANCE '+account+'\n')
+		f.write('BEGIN\nBALANCE '+account+'\nCOMMIT\n')
 	with open('i5-10-'+str(r)+'.txt', 'w') as f:
 		f.write('BEGIN\nBALANCE '+account+'\nCOMMIT\n')
 	with open('i5-10-expected-'+str(r)+'.txt', 'w') as f:
@@ -36,7 +36,7 @@ for r in range(2):
 	with open('i10-8-'+str(r)+'.txt', 'w') as f:
 		f.write('BEGIN\nDEPOSIT '+account+' 10\nCOMMIT\n')
 	with open('i10-9-'+str(r)+'.txt', 'w') as f:
-		f.write('BEGIN\nBALANCE '+account+'\n')
+		f.write('BEGIN\nBALANCE '+account+'\nCOMMIT\n')
 	with open('i10-10-'+str(r)+'.txt', 'w') as f:
 		f.write('BEGIN\nBALANCE '+account+'\nCOMMIT\n')
 	with open('i10-10-expected-'+str(r)+'.txt', 'w') as f:

@@ -1,8 +1,8 @@
 #!/bin/bash
 # Run configs
-group=2
+group=10
 num_run=2 # number of run for isolation tests
-local=1 # whether run locally
+local=0 # whether run locally
 global_limit=5 # global time limit for client execution in seconds
 client2_limit=5 # isolation/deadlock test with 2 client time limit in seconds
 client5_limit=10 # isolation/deadlock test with 5 client time limit in seconds
@@ -35,8 +35,8 @@ if [[ $local -eq 1 ]]; then
 	done
 	cd $curr_folder
 else
-	cp config1.txt ${group_folder}/config.txt
-	for (( i=1; i<5; i++ )); do
+	cp config.txt ${group_folder}/config.txt
+	for (( i=0; i<5; i++ )); do
 		vm=${vms[$i]}
 		scp -r ${group_folder}/ jw22@$vm:mp3/
 	done
@@ -53,7 +53,7 @@ cleanup () {
 		done
 	else
 		cp ${group_folder}/*.log ${grade_folder}/
-		for (( i=1; i<5; i++ )); do
+		for (( i=0; i<5; i++ )); do
 			vm=${vms[$i]}
 			scp jw22@$vm:mp3/g${group}/server_${servers[$i]}.log ${grade_folder}/
 		done
@@ -374,6 +374,7 @@ fi
 
 # Isolation Tests
 if [[ $run_isolation -eq 1 ]]; then
+	tlimit
 	itest1 2
 	itest1 5
 	itest1 10
@@ -383,7 +384,6 @@ if [[ $run_isolation -eq 1 ]]; then
 	itest3 2
 	itest3 5
 	itest3 10
-	tlimit
 fi
 
 # Deadlock Tests

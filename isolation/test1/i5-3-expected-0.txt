@@ -1,2 +1,3 @@
 OK
 A.bb = 60
+COMMIT OK

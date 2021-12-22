@@ -8,3 +8,4 @@ OK
 A.bar = 10
 B.bar = 15
 C.bar = 30
+COMMIT OK

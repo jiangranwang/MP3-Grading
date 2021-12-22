@@ -12,6 +12,6 @@ for r in range(2):
 			commands += 'COMMIT\n'
 			f.write(commands)
 		with open('i'+str(num_client)+'-6-'+str(r)+'.txt', 'w') as f:
-			f.write('BEGIN\nBALANCE '+account+'\n')
+			f.write('BEGIN\nBALANCE '+account+'\nCOMMIT\n')
 		with open('i'+str(num_client)+'-6-expected-'+str(r)+'.txt', 'w') as f:
-			f.write('OK\n'+account+' = '+str(20*num_client+10)+'\n')
+			f.write('OK\n'+account+' = '+str(20*num_client+10)+'\nCOMMIT OK\n')
