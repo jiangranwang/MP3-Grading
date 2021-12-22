@@ -88,7 +88,7 @@ atests () {
 	cd ${group_folder}
 	score=4
 
-	timeout ${global_limit}s ./client a config.txt < ../tests/atomicity/a$1.txt > ../a$1.log 2>&1
+	timeout -s INT ${global_limit}s ./client a config.txt < ../tests/atomicity/a$1.txt > ../a$1.log 2>&1
 	if [[ $? -eq 124 ]]; then
 		echo -e "${RED}Timed out: process did not complete within ${global_limit} seconds${NC}"
 		echo "Atomicity $1 Test timed out" >> ../result.txt
@@ -116,7 +116,7 @@ ctests () {
 		score=6
 	fi
 
-	timeout ${global_limit}s ./client a config.txt < ../tests/consistency/c$1.txt > ../c$1.log 2>&1
+	timeout -s INT ${global_limit}s ./client a config.txt < ../tests/consistency/c$1.txt > ../c$1.log 2>&1
 	if [[ $? -eq 124 ]]; then
 		echo -e "${RED}Timed out: process did not complete within ${global_limit} seconds${NC}"
 		echo "Consistency $1 Test timed out" >> ../result.txt
@@ -140,7 +140,7 @@ tlimit () {
 
 	pids=()
 	for (( i=1; i<=10; i++ )); do 
-		timeout 10s ./client ${clients[$i]} config.txt < ../tests/isolation/limit/t$i.txt > /dev/null & 
+		timeout -s INT 10s ./client ${clients[$i]} config.txt < ../tests/isolation/limit/t$i.txt > /dev/null & 
 		pids+=($!)
 	done
 
@@ -151,7 +151,7 @@ tlimit () {
 			echo 'Time limit Test timed out' >> ../result.txt
 		fi
 	done
-	timeout 5s ./client a config.txt < ../tests/isolation/limit/t11.txt > ../t11.log 2>&1
+	timeout -s INT 5s ./client a config.txt < ../tests/isolation/limit/t11.txt > ../t11.log 2>&1
 	diff ../t11.log ../tests/isolation/limit/t11-expected.txt
 
 	read -p "Time Limit Test Passed? (y/n)" yn
@@ -181,9 +181,9 @@ itest1 () {
 	for (( i=0; i<$num_run; i++ )); do
 		echo 'run num: '$i
 		pids=()
-		timeout ${global_limit}s ./client a config.txt < ../tests/isolation/test1/i$1-1-$i.txt > ../i1-$1-$i-00.log 2>&1
+		timeout -s INT ${global_limit}s ./client a config.txt < ../tests/isolation/test1/i$1-1-$i.txt > ../i1-$1-$i-00.log 2>&1
 		for (( j=0; j<$1; j++ )); do
-			timeout ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test1/i$1-2-$i.txt > ../i1-$1-$i-$j.log 2>&1 &
+			timeout -s INT ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test1/i$1-2-$i.txt > ../i1-$1-$i-$j.log 2>&1 &
 			pids+=($!)
 		done
 		for pid in ${pids[@]}; do
@@ -193,7 +193,7 @@ itest1 () {
 				echo 'Isolation 1 Test timed out' >> ../result.txt
 			fi
 		done
-		timeout ${global_limit}s ./client a config.txt < ../tests/isolation/test1/i$1-3-$i.txt > ../i1-$1-$i.log 2>&1
+		timeout -s INT ${global_limit}s ./client a config.txt < ../tests/isolation/test1/i$1-3-$i.txt > ../i1-$1-$i.log 2>&1
 		diff ../i1-$1-$i.log ../tests/isolation/test1/i$1-3-expected-$i.txt
 		echo
 	done
@@ -225,9 +225,9 @@ itest2 () {
 	for (( i=0; i<$num_run; i++ )); do
 		echo 'run num: '$i
 		pids=()
-		timeout ${global_limit}s ./client a config.txt < ../tests/isolation/test2/i$1-4-$i.txt > ../i2-$1-$i-00.log 2>&1
+		timeout -s INT ${global_limit}s ./client a config.txt < ../tests/isolation/test2/i$1-4-$i.txt > ../i2-$1-$i-00.log 2>&1
 		for (( j=0; j<$1; j++ )); do
-			timeout ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test2/i$1-5-$i.txt > ../i2-$1-$i-$j.log 2>&1 &
+			timeout -s INT ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test2/i$1-5-$i.txt > ../i2-$1-$i-$j.log 2>&1 &
 			pids+=($!)
 		done
 		for pid in ${pids[@]}; do
@@ -238,7 +238,7 @@ itest2 () {
 			fi
 		done
 		python3 ../tests/isolation/test2/check.py $j ../i2-$1-$i
-		timeout ${global_limit}s ./client a config.txt < ../tests/isolation/test2/i$1-6-$i.txt > ../i2-$1-$i.log 2>&1
+		timeout -s INT ${global_limit}s ./client a config.txt < ../tests/isolation/test2/i$1-6-$i.txt > ../i2-$1-$i.log 2>&1
 		diff ../i2-$1-$i.log ../tests/isolation/test2/i$1-6-expected-$i.txt
 		echo
 	done
@@ -280,15 +280,15 @@ itest3 () {
 		echo 'run num: '$i
 		pids=()
 		for (( j=0; j<$abort; j++ )); do
-			timeout ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test3/i$1-7-$i.txt > ../i3-$1-$i-$j.log 2>&1 &
+			timeout -s INT ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test3/i$1-7-$i.txt > ../i3-$1-$i-$j.log 2>&1 &
 			pids+=($!)
 		done
 		for (( j=$abort; j<$write+$abort; j++ )); do
-			timeout ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test3/i$1-8-$i.txt > ../i3-$1-$i-$j.log 2>&1 &
+			timeout -s INT ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test3/i$1-8-$i.txt > ../i3-$1-$i-$j.log 2>&1 &
 			pids+=($!)
 		done
 		for (( j=$write+$abort; j<$read+$write+$abort; j++ )); do
-			timeout ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test3/i$1-9-$i.txt > ../i3-$1-$i-$j.log 2>&1 &
+			timeout -s INT ${limit}s ./client ${clients[$j]} config.txt < ../tests/isolation/test3/i$1-9-$i.txt > ../i3-$1-$i-$j.log 2>&1 &
 			pids+=($!)
 		done
 		for pid in ${pids[@]}; do
@@ -299,7 +299,7 @@ itest3 () {
 			fi
 		done
 		python3 ../tests/isolation/test3/check.py $read ../i3-$1-$i
-		timeout ${global_limit}s ./client a config.txt < ../tests/isolation/test3/i$1-10-$i.txt > ../i3-$1-$i.log 2>&1
+		timeout -s INT ${global_limit}s ./client a config.txt < ../tests/isolation/test3/i$1-10-$i.txt > ../i3-$1-$i.log 2>&1
 		diff ../i3-$1-$i.log ../tests/isolation/test3/i$1-10-expected-$i.txt
 		echo
 	done
@@ -332,7 +332,7 @@ dtest () {
 		echo 'run num: '$i
 		pids=()
 		for (( j=0; j<$1; j++ )); do
-			timeout ${limit}s ./client ${clients[$j]} config.txt < ../tests/deadlock/d$1-$j-$i.txt > ../d$1-$j-$i.log 2>&1 &
+			timeout -s INT ${limit}s ./client ${clients[$j]} config.txt < ../tests/deadlock/d$1-$j-$i.txt > ../d$1-$j-$i.log 2>&1 &
 			pids+=($!)
 		done
 		for pid in ${pids[@]}; do
