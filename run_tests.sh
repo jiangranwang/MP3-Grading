@@ -1,9 +1,9 @@
 #!/bin/bash
 # Run configs
-group=3
+group=0
 num_run=2 # number of run for isolation tests
 local=1 # whether run locally
-global_limit=3 # global time limit for client execution in seconds
+global_limit=5 # global time limit for client execution in seconds
 client2_limit=5 # isolation/deadlock test with 2 client time limit in seconds
 client5_limit=10 # isolation/deadlock test with 5 client time limit in seconds
 client10_limit=15 # isolation/deadlock test with 10 client time limit in seconds
