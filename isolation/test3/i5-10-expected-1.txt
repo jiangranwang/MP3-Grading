@@ -1,3 +1,0 @@
-OK
-D.hh = 20
-COMMIT OK

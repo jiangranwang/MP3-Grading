@@ -1,32 +1,27 @@
 import sys
 import os
-
-files = []
-if int(sys.argv[1]) == 1:
-	files.append(sys.argv[2] + '-4.log')
-elif int(sys.argv[1]) == 2:
-	files.append(sys.argv[2] + '-8.log')
-	files.append(sys.argv[2] + '-9.log')
-for file in files:
-	if not os.path.isfile(file):
-		print('\033[93m' + 'client '+file+' file does not exist' + '\033[0m')
+from time import sleep
+num_client = int(sys.argv[1])
+file_base = sys.argv[2]
+run_files = [file_base + '-' + str(i) + '.log' for i in range(num_client)]
+for client in range(num_client):
+	run_file = run_files[client]
+	prev_val = None
+	count = 0
+	if not os.path.isfile(run_file):
+		print('\033[93m' + 'client '+client+' file does not exist' + '\033[0m')
 		sys.exit()
-	with open(file, 'r') as f:
+	with open(run_file, 'r') as f:
 		lines = f.readlines()
-		invalid = False 
-		if len(lines) < 2:
-			invalid = True
-		else:
-			if lines[0] != 'OK\n':
-				invalid = True
-			if lines[1] != 'NOT FOUND, ABORTED\n':
-				try:
-					val = int(lines[1].split()[2])
-					if val % 10 != 0 or val > len(files) * 20:
-						invalid = True
-				except:
-					invalid = True
-		if invalid:
-			print('\033[93m' + 'unexpected log: '+ str(lines) + '\033[0m')
-			sys.exit()
-print('\033[92m' + 'file check success' + '\033[0m')
+		for l in lines:
+			if l[2] != '.':
+				continue
+			curr_val = int(l.split()[2])
+			if prev_val is None:
+				prev_val = curr_val
+			else:
+				if curr_val - prev_val != 10:
+					print('\033[93m' + 'client '+client+' has invalid value output' + '\033[0m')
+					sys.exit()
+				prev_val = curr_val
+print('\033[92m' + 'value check success' + '\033[0m')

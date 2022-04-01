@@ -1,3 +1,0 @@
-OK
-C.ee = 110
-COMMIT OK

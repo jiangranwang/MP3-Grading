@@ -1,7 +1,7 @@
-servers = ['A', 'B']
+servers = ['A', 'B', 'C']
 acs = ['aa', 'bb', 'cc']
-for r in range(2):
-	for i, num_client in enumerate([2,5,10]):
+for r in range(3):
+	for i, num_client in enumerate([2,5]):
 		account = servers[r] + '.' + acs[i]
 		with open('i'+str(num_client)+'-1-'+str(r)+'.txt', 'w') as f:
 			f.write('BEGIN\nDEPOSIT '+account+' 10\nCOMMIT\n')

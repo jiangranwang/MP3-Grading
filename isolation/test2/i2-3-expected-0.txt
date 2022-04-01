@@ -1,0 +1,4 @@
+OK
+A.dd = 30
+B.ee = 30
+COMMIT OK

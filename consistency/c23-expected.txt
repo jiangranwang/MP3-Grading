@@ -1,0 +1,3 @@
+OK
+A.g = 30
+COMMIT OK

@@ -1,0 +1,4 @@
+OK
+A.h = 1
+B.g = 40
+COMMIT OK

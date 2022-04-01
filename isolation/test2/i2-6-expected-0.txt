@@ -1,3 +1,0 @@
-OK
-B.dd = 50
-COMMIT OK

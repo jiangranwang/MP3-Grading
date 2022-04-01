@@ -1,3 +1,0 @@
-OK
-D.gg = 10
-COMMIT OK
