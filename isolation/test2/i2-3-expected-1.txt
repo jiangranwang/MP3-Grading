@@ -1,4 +1,0 @@
-OK
-B.dd = 30
-C.ee = 30
-COMMIT OK

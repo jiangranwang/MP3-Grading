@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # Run configs
-group_folder='no_deadlock'
+group_folder='has_deadlock'
 num_run=3 # number of run for isolation tests
 local=1 # whether run locally
 global_limit=5 # global time limit for client execution in seconds
 client2_limit=5 # isolation/deadlock test with 2 client time limit in seconds
 client5_limit=10 # isolation/deadlock test with 5 client time limit in seconds
-run_atomicity=1
-run_consistency=1
+run_atomicity=0
+run_consistency=0
 run_isolation=1
 run_deadlock=1
 
@@ -164,16 +164,16 @@ itest1 () {
 			fi
 		done
 		timeout -s SIGKILL ${global_limit}s ./client a config.txt < ../isolation/test1/i$1-3-$i.txt > ../outputs/i1-$1-$i.log 2>&1
-		diff ../outputs/i1-$1-$i.log ../isolation/test1/i$1-3-expected-$i.txt
+		python3 ../isolation/test1/check.py $1 ../outputs/i1-$1-$i
 		echo
 	done
 
-	read -p "Isolation 1 $1-client Test Number of Runs Passed (out of "$num_run")? " n
-	echo 'Isolation Test 1 with '$1' clients: ' >> ../outputs/result.txt
-	curr_score=$( bc <<< 'scale=2; '$n'/'$num_run'*'$score )
-	echo $n'/'$num_run' Runs Passed ('$curr_score/$score'.00 points)' >> ../outputs/result.txt
-	echo 'score is: '$curr_score/$score'.00'
-	final_score=$( bc <<< 'scale=2; '$final_score'+'$curr_score )
+	read -p "Isolation 1 $1 Test Passed? (y/n)" yn
+	echo "Isolation Test 1 with $1 clients: " >> ../outputs/result.txt
+	case $yn in
+		[Nn]* ) echo 'Test Failed' >> ../outputs/result.txt;;
+	    * ) final_score=$(( $final_score+$score )); echo 'Test Passed ('$score' points)' >> ../outputs/result.txt;;
+	esac
 	cd ${curr_folder}
 	echo; echo;
 }
@@ -192,12 +192,8 @@ itest2 () {
 		echo 'run num: '$i
 		pids=()
 		timeout -s SIGKILL ${global_limit}s ./client a config.txt < ../isolation/test2/i$1-1-$i.txt > ../outputs/i2-$1-$i-00.log 2>&1
-		for (( j=0; j<$1/2; j++ )); do
-			timeout -s SIGKILL ${limit}s ./client ${clients[$j]} config.txt < ../isolation/test2/i$1-21-$i.txt > ../outputs/i2-$1-$i-$j.log 2>&1 &
-			pids+=($!)
-		done
-		for (( j=$1/2; j<$1; j++ )); do
-			timeout -s SIGKILL ${limit}s ./client ${clients[$j]} config.txt < ../isolation/test2/i$1-22-$i.txt > ../outputs/i2-$1-$i-$j.log 2>&1 &
+		for (( j=0; j<$1; j++ )); do
+			timeout -s SIGKILL ${limit}s ./client ${clients[$j]} config.txt < ../isolation/test2/i$1-2-$i.txt > ../outputs/i2-$1-$i-$j.log 2>&1 &
 			pids+=($!)
 		done
 		for pid in ${pids[@]}; do
@@ -208,16 +204,16 @@ itest2 () {
 			fi
 		done
 		timeout -s SIGKILL ${global_limit}s ./client a config.txt < ../isolation/test2/i$1-3-$i.txt > ../outputs/i2-$1-$i.log 2>&1
-		diff ../outputs/i2-$1-$i.log ../isolation/test2/i$1-3-expected-$i.txt
+		python3 ../isolation/test2/check.py $1 ../outputs/i2-$1-$i
 		echo
 	done
 
-	read -p "Isolation 2 $1-client Test Number of Runs Passed (out of "$num_run")? " n
-	echo 'Isolation Test 2 with '$1' clients: ' >> ../outputs/result.txt
-	curr_score=$( bc <<< 'scale=2; '$n'/'$num_run'*'$score )
-	echo $n'/'$num_run' Runs Passed ('$curr_score/$score'.00 points)' >> ../outputs/result.txt
-	echo 'score is: '$curr_score/$score'.00'
-	final_score=$( bc <<< 'scale=2; '$final_score'+'$curr_score )
+	read -p "Isolation 2 $1 Test Passed? (y/n)" yn
+	echo "Isolation Test 2 with $1 clients: " >> ../outputs/result.txt
+	case $yn in
+		[Nn]* ) echo 'Test Failed' >> ../outputs/result.txt;;
+	    * ) final_score=$(( $final_score+$score )); echo 'Test Passed ('$score' points)' >> ../outputs/result.txt;;
+	esac
 	cd ${curr_folder}
 	echo; echo;
 }
@@ -247,18 +243,17 @@ itest3 () {
 				echo "Isolation 3 Test $1-client timed out" >> ../outputs/result.txt
 			fi
 		done
-		python3 ../isolation/test3/check.py $j ../outputs/i3-$1-$i
 		timeout -s SIGKILL ${global_limit}s ./client a config.txt < ../isolation/test3/i$1-3-$i.txt > ../outputs/i3-$1-$i.log 2>&1
-		diff ../outputs/i3-$1-$i.log ../isolation/test3/i$1-3-expected-$i.txt
+		python3 ../isolation/test3/check.py $j ../outputs/i3-$1-$i
 		echo
 	done
 
-	read -p "Isolation 3 $1-client Test Number of Runs Passed (out of "$num_run")? " n
-	echo 'Isolation Test 3 with '$1' clients: ' >> ../outputs/result.txt
-	curr_score=$( bc <<< 'scale=2; '$n'/'$num_run'*'$score )
-	echo $n'/'$num_run' Runs Passed ('$curr_score/$score'.00 points)' >> ../outputs/result.txt
-	echo 'score is: '$curr_score/$score'.00'
-	final_score=$( bc <<< 'scale=2; '$final_score'+'$curr_score )
+	read -p "Isolation 3 $1 Test Passed? (y/n)" yn
+	echo "Isolation Test 3 with $1 clients: " >> ../outputs/result.txt
+	case $yn in
+		[Nn]* ) echo 'Test Failed' >> ../outputs/result.txt;;
+	    * ) final_score=$(( $final_score+$score )); echo 'Test Passed ('$score' points)' >> ../outputs/result.txt;;
+	esac
 	cd ${curr_folder}
 	echo; echo;
 }
@@ -281,6 +276,7 @@ itest4 () {
 			pids+=($!)
 		done
 		for (( j=$1/2; j<$1; j++ )); do
+			echo 'here'
 			timeout -s SIGKILL ${limit}s ./client ${clients[$j]} config.txt < ../isolation/test4/i$1-2-$i.txt > ../outputs/i4-$1-$i-$j.log 2>&1 &
 			pids+=($!)
 		done
@@ -292,16 +288,16 @@ itest4 () {
 			fi
 		done
 		timeout -s SIGKILL ${global_limit}s ./client a config.txt < ../isolation/test4/i$1-3-$i.txt > ../outputs/i4-$1-$i.log 2>&1
-		diff ../outputs/i4-$1-$i.log ../isolation/test4/i$1-3-expected-$i.txt
+		python3 ../isolation/test4/check.py $j ../outputs/i4-$1-$i
 		echo
 	done
 
-	read -p "Isolation 4 $1-client Test Number of Runs Passed (out of "$num_run")? " n
-	echo 'Isolation Test 4 with '$1' clients: ' >> ../outputs/result.txt
-	curr_score=$( bc <<< 'scale=2; '$n'/'$num_run'*'$score )
-	echo $n'/'$num_run' Runs Passed ('$curr_score/$score'.00 points)' >> ../outputs/result.txt
-	echo 'score is: '$curr_score/$score'.00'
-	final_score=$( bc <<< 'scale=2; '$final_score'+'$curr_score )
+	read -p "Isolation 4 $1 Test Passed? (y/n)" yn
+	echo "Isolation Test 4 with $1 clients: " >> ../outputs/result.txt
+	case $yn in
+		[Nn]* ) echo 'Test Failed' >> ../outputs/result.txt;;
+	    * ) final_score=$(( $final_score+$score )); echo 'Test Passed ('$score' points)' >> ../outputs/result.txt;;
+	esac
 	cd ${curr_folder}
 	echo; echo;
 }
@@ -362,12 +358,12 @@ fi
 
 # Isolation Tests
 if [[ $run_isolation -eq 1 ]]; then
-	itest1 2
-	itest1 5
-	itest2 2
-	itest2 5
-	itest3 2
-	itest3 5
+	# itest1 2
+	# itest1 5
+	# itest2 2
+	# itest2 5
+	# itest3 2
+	# itest3 5
 	itest4 2
 	itest4 5
 fi

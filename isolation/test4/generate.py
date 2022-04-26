@@ -9,5 +9,3 @@ for r in range(3):
 			f.write('BEGIN\nDEPOSIT '+account+' 10\nABORT\n')
 		with open('i'+str(num_client)+'-3-'+str(r)+'.txt', 'w') as f:
 			f.write('BEGIN\nBALANCE '+account+'\nCOMMIT\n')
-		with open('i'+str(num_client)+'-3-expected-'+str(r)+'.txt', 'w') as f:
-			f.write('OK\n'+account+' = '+str(10*(i+1))+'\nCOMMIT OK\n')

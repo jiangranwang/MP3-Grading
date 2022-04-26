@@ -1,65 +1,63 @@
 ## Atomicity Tests
-a1.txt: abort pre-exisiting account (4 points)
+a1.txt: deposit/withdraw from two accounts on two branches and read balance (3 points)
 
-a2.txt: abort newly created account (4 points)
+a2.txt: (single branch) deposit is aborted and check account doesn't exist (3 points)
 
-a3.txt: ignore commands outside transactions (4 points)
+a3.txt: (two branches) deposit is aborted and check account doesn't exist (4 points)
 
-a4.txt: basic test with one deposit command (4 points)
-
-a5.txt: basic test with one deposit and one balance command (4 points)
+a4.txt: deposit and withdraw from nonexist account and check deposit is reverted (5 points)
 
 ## Consistency Tests
-c1.txt: transaction involving multiple servers (8 points)
+c1.txt: withdraw from nonexist account (5 points)
 
-c2.txt: negative balance during transaction but eventually resolved (6 points)
+c2.txt: deposit/withdraw from single account and check balance consistency (5 points)
 
-c3.txt: commit with negative balance (6 points)
+c3.txt: deposit/withdraw from two accounts and check balance consistency (5 points)
 
 ## Isolation Tests
-Each test runs 2 times
+Each test runs 3 times
 
-### 10 clients write to different accounts within time limit (5 points)
-t1.txt - t10.txt: each client write to different accounts 5 times and limit execution time within 10s
-
-t11.txt: check final balance of all accounts with t11-expected.txt
-
-### N clients write twice to single account (2, 3, 5 points for N=2, 5, 10)
+### N clients write to single account (3, 4 points for N=2, 5)
 iN-1.txt: initialize account x 10
 
 iN-2.txt: deposit 10 x
 
-iN-3.txt: display balance of account x
+iN-3.txt: read balance of account x
 
-Compare the output of iN-3.txt with iN-3-expected.txt (final value should be 10N+10)
+N={2,5}, run in the order of iN-1.txt -> NxiN-2.txt -> iN-3.txt
 
-N={2,5,10}, run in the order of iN-1.txt -> NxiN-2.txt -> iN-3.txt
+The number of aborted transaction is at most N-1, and the final balance of the account is num_sucess_transaction * 10 + 10
 
-### N clients read/write multiple times to single account (2, 3, 5 points for N=2, 5, 10)
-iN-4.txt: initialize account x 10
+### N clients write to two accounts on two branches (3, 3 points for N=2, 5)
+iN-1.txt: initialize account x/y 10
 
-iN-5.txt: deposit 10 x, balance x, deposit 10 x, balance x (the output of balance should be y, y+10)
+iN-2.txt: deposit 10 x/y
 
-Compare the output of iN-5.txt with iN-5-expected.txt
+iN-3.txt: read balance of account x/y
 
-iN-6.txt: display balance of account x
+N={2,5}, run in the order of iN-1.txt -> NxiN-2.txt -> iN-3.txt
 
-Compare the output of iN-6.txt with iN-6-expected.txt (Final value should be 20N+10)
+The number of aborted transaction is at most N-1, and the final balance of each account is num_sucess_transaction * 10 + 10
 
-N={2,5,10}, run in the order of iN-4.txt -> NxiN-5.txt -> iN-6.txt
+### N clients read/write multiple times to single account (3, 3 points for N=2, 5)
+iN-1.txt: initialize account x 10
 
-### N clients abort test (2, 3, 5 points for N=2, 5, 10)
-2 clients: two clients deposit to the same account, one aborts and the other one should be unaffected. Check balance of the account at last. (i2-7.txt/i2-8.txt -> i2-10.txt)
+iN-2.txt: deposit 10 x, balance x, deposit 10 x, balance x (the output of the two balance command should have a difference of 10)
 
-5 clients: two clients deposit to account x and abort, two clients deposit to account x and do not abort, one client read account x. Check balance of account x at last. The output of the read client could be either success or aborted. (i5-7.txt/i5-8.txt/i5-9.txt -> i5-10.txt)
+iN-3.txt: read balance of account x
 
-10 clients: four clients deposit to account x and abort, four clients deposit to account x and do not abort, two clients read account x. Check balance of account x at last. The output of the read clients could be either success or aborted. (i10-7.txt/i10-8.txt/i10-9.txt -> i10-10.txt)
+N={2,5}, run in the order of iN-1.txt -> NxiN-2.txt -> iN-3.txt
+
+The number of aborted transaction is at most N-1, and the final balance of each account is num_sucess_transaction * 20 + 10
+
+### N clients abort test (3, 3 points for N=2, 5)
+2 clients: 2 clients deposit to the same account, one aborts and the other one should be unaffected. Check balance of the account at last. (i2-1.txt/i2-2.txt -> i2-3.txt)
+
+5 clients: 5 clients deposit to account x and abort, two clients deposit to account x and do not abort but the other three clients are aborted. Check balance of account x at last. (i5-1.txt/i5-2.txt -> i5-3.txt)
 
 ## Deadlock Tests
-Each test runs 2 times
+Each test runs 3 times
 
 2 clients: client 1 (deposit a, deposite b), client 2 (deposit b, deposite a) (2 points)
 
 5 clients: client 1 (deposit a, deposite b, deposit c, deposite d, deposit e), client 2 (deposit b, deposite c, deposit d, deposite e, deposit a), ... (3 points)
-
-10 clients: ... (5 points)

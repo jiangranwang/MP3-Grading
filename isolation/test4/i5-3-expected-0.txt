@@ -1,3 +1,0 @@
-OK
-C.nn = 20
-COMMIT OK

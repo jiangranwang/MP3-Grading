@@ -1,3 +1,0 @@
-OK
-C.mm = 10
-COMMIT OK

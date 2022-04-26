@@ -1,3 +1,0 @@
-OK
-C.jj = 50
-COMMIT OK

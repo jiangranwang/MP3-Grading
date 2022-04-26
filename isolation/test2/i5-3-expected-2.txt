@@ -1,4 +1,0 @@
-OK
-C.ff = 60
-D.gg = 60
-COMMIT OK

@@ -1,3 +1,0 @@
-OK
-B.bb = 60
-COMMIT OK

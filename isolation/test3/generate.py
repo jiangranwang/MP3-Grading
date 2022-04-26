@@ -13,5 +13,3 @@ for r in range(3):
 			f.write(commands)
 		with open('i'+str(num_client)+'-3-'+str(r)+'.txt', 'w') as f:
 			f.write('BEGIN\nBALANCE '+account+'\nCOMMIT\n')
-		with open('i'+str(num_client)+'-3-expected-'+str(r)+'.txt', 'w') as f:
-			f.write('OK\n'+account+' = '+str(20*num_client+10)+'\nCOMMIT OK\n')

@@ -1,3 +1,0 @@
-OK
-B.aa = 30
-COMMIT OK

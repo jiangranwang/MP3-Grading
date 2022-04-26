@@ -1,4 +1,0 @@
-OK
-A.ff = 60
-B.gg = 60
-COMMIT OK
