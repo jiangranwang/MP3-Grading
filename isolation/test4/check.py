@@ -19,17 +19,18 @@ for fn in intermediate_files:
 				total_aborted += 1
 				break
 
-# check if number of aborted transaction is less than num_client and greater than num_client / 2
-print(total_aborted)
+# check if number of aborted transaction is greater than num_client / 2
 assert total_aborted >= num_client // 2, red[0] + fn + ' not enough client aborted' + red[1]
-assert total_aborted < num_client, red[0] + fn + ' too many client aborted' + red[1]
 
 # check if final balance matches the number of aborted clients
 assert os.path.isfile(final_file), red[0] + final_file + ' file is missing' + red[1]
 with open(final_file, 'r') as f:
 	lines = f.readlines()
 	assert lines[0] == 'OK\n'
-	assert int(lines[1].split()[2]) == (num_client - total_aborted) * 10, red[0] + 'inconsistent final balance' + red[1]
-	assert lines[2] == 'COMMIT OK\n'
+	if 'ABORT' not in lines[1].split()[2]:
+		assert int(lines[1].split()[2]) == (num_client - total_aborted) * 10, red[0] + 'inconsistent final balance' + red[1]
+		assert lines[2] == 'COMMIT OK\n'
+	else:
+		assert total_aborted == num_client, red[0] + 'expect all clients to abort' + red[1]
 
 print(green[0] + 'isolation test 1 with ' + str(num_client) + ' clients check success' + green[1])

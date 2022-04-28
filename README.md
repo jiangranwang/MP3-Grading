@@ -55,9 +55,10 @@ The number of aborted transaction is at most N-1, and the final balance of each 
 
 5 clients: 5 clients deposit to account x and abort, two clients deposit to account x and do not abort but the other three clients are aborted. Check balance of account x at last. (i5-1.txt/i5-2.txt -> i5-3.txt)
 
-## Deadlock Tests
-Each test runs 3 times
+For this test, it's possible that all transactions are aborted if using timestamped concurrency.
 
-2 clients: client 1 (deposit a, deposite b), client 2 (deposit b, deposite a) (2 points)
+## Deadlock Tests (5 points)
+client 1 contains: deposit a, deposit a, deposit a, deposit a, deposit a, deposite b
+client 2 contains: deposit b, deposit b, deposit b, deposit b, deposit b, deposite a
 
-5 clients: client 1 (deposit a, deposite b, deposit c, deposite d, deposit e), client 2 (deposit b, deposite c, deposit d, deposite e, deposit a), ... (3 points)
+If the none of the client is aborted, that means a deadlock is not created. We can either rerun the same test multiple times until an abort is emitted, or manually spin up two clients and create the deadlock. One of the transactions should be successful.

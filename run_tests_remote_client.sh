@@ -1,4 +1,5 @@
 #!/bin/bash
+# will run much slower :(
 
 # Run configs
 group_folder='has_deadlock'
@@ -18,7 +19,8 @@ remote_port=1234
 curr_folder=$(pwd)
 clients=(a b c d e)
 servers=(A B C D E)
-vms=('sp22-cs425-g01-02.cs.illinois.edu' 'sp22-cs425-g01-03.cs.illinois.edu' 'sp22-cs425-g01-04.cs.illinois.edu' 'sp22-cs425-g01-05.cs.illinois.edu' 'sp22-cs425-g01-06.cs.illinois.edu')
+client_vms=('sp22-cs425-g01-01.cs.illinois.edu' 'sp22-cs425-g01-02.cs.illinois.edu' 'sp22-cs425-g01-03.cs.illinois.edu' 'sp22-cs425-g01-04.cs.illinois.edu' 'sp22-cs425-g01-05.cs.illinois.edu')
+server_vms=('sp22-cs425-g01-06.cs.illinois.edu' 'sp22-cs425-g01-07.cs.illinois.edu' 'sp22-cs425-g01-08.cs.illinois.edu' 'sp22-cs425-g01-09.cs.illinois.edu' 'sp22-cs425-g01-10.cs.illinois.edu')
 RED='\033[0;31m'
 NC='\033[0m'
 final_score=0
@@ -37,7 +39,12 @@ if [[ $local -eq 1 ]]; then
 else
 	cp config_vm.txt ${group_folder}/config.txt
 	pids=()
-	for server_vm in ${vms[@]}; do
+	for (( i=1; i<5; i++ )); do # we are on first client_vm
+		client_vm=${client_vms[$i]}
+		scp -r ${group_folder}/ jw22@$client_vm:mp3/ &
+		pids+=($!)
+	done
+	for server_vm in ${server_vms[@]}; do
 		scp -r ${group_folder}/ jw22@$server_vm:mp3/ &
 		pids+=($!)
 	done
@@ -48,7 +55,7 @@ else
 	echo "done transfer. starting servers..."
 	for (( i=0; i<5; i++ )); do
 		server_vm=${server_vms[$i]}
-		ssh jw22@$server_vm:mp3/ "cd mp3/${group_folder} && ./server ${servers[i]} config.txt > server_${server}.log 2>&1" &
+		ssh jw22@$server_vm:mp3/ "cd mp3/${group_folder} && ./server ${servers[i]} config.txt > ../outputs/server_${server}.log 2>&1" &
 		pids+=($!)
 	done
 	echo "done starting servers. waiting for servers to connect..."
@@ -97,29 +104,6 @@ cleanup () {
 
 trap cleanup EXIT
 sleep 5
-
-# Check concurrent local client possibility
-checkClients () {
-	cd ${group_folder}
-	timeout -s SIGKILL 2s ./client a config.txt < ../sample_test/input1.txt > temp1.log 2>&1 &
-	timeout -s SIGKILL 2s ./client b config.txt < ../sample_test/input1.txt > temp2.log 2>&1 &
-	sleep 2
-
-	echo;
-	echo "file 1 log:"
-	cat temp1.log
-	echo;
-	echo "file 2 log:"
-	cat temp2.log
-
-	read -p "Client check passed? (y/n)" yn
-	case $yn in
-		[Nn]* ) exit;;
-	    * ) echo "start testing...";;
-	esac
-	cd ${curr_folder}
-	echo; echo;
-}
 
 # Atomicity Tests (3, 3, 4, 5)
 atests () {
@@ -188,18 +172,15 @@ itest1 () {
 
 	for (( i=0; i<$num_run; i++ )); do
 		echo 'run num: '$i
-		pids=()
 		timeout -s SIGKILL ${global_limit}s ./client a config.txt < ../isolation/test1/i$1-1-$i.txt > ../outputs/i1-$1-$i-00.log 2>&1
 		for (( j=0; j<$1; j++ )); do
-			timeout -s SIGKILL ${limit}s ./client ${clients[$j]} config.txt < ../isolation/test1/i$1-2-$i.txt > ../outputs/i1-$1-$i-$j.log 2>&1 &
-			pids+=($!)
+			client_vm=${client_vms[@]}
+			ssh jw22@$client_vm "cd mp3/${group_folder} && timeout -s SIGKILL ${limit}s ./client ${clients[$j]} config.txt < ../isolation/test1/i$1-2-$i.txt > i1-$1-$i-$j.log 2>&1" &
 		done
-		for pid in ${pids[@]}; do
-			wait $pid
-			if [[ $? -eq 124 ]]; then
-				echo -e "${RED}Timed out: process did not complete within $limit seconds${NC}"
-				echo "Isolation 1 Test $1-client timed out" >> ../outputs/result.txt
-			fi
+		sleep ${limit}
+		for (( j=0; j<$1; j++ )); do
+			client_vm=${client_vms[@]}
+			scp jw22@$client_vm:mp3/${group_folder}/i1-$1-$i-$j.log ../outputs/
 		done
 		timeout -s SIGKILL ${global_limit}s ./client a config.txt < ../isolation/test1/i$1-3-$i.txt > ../outputs/i1-$1-$i.log 2>&1
 		python3 ../isolation/test1/check.py $1 ../outputs/i1-$1-$i
@@ -228,18 +209,15 @@ itest2 () {
 
 	for (( i=0; i<$num_run; i++ )); do
 		echo 'run num: '$i
-		pids=()
 		timeout -s SIGKILL ${global_limit}s ./client a config.txt < ../isolation/test2/i$1-1-$i.txt > ../outputs/i2-$1-$i-00.log 2>&1
 		for (( j=0; j<$1; j++ )); do
-			timeout -s SIGKILL ${limit}s ./client ${clients[$j]} config.txt < ../isolation/test2/i$1-2-$i.txt > ../outputs/i2-$1-$i-$j.log 2>&1 &
-			pids+=($!)
+			client_vm=${client_vms[@]}
+			ssh jw22@$client_vm "cd mp3/${group_folder} && timeout -s SIGKILL ${limit}s ./client ${clients[$j]} config.txt < ../isolation/test2/i$1-2-$i.txt > i2-$1-$i-$j.log 2>&1" &
 		done
-		for pid in ${pids[@]}; do
-			wait $pid
-			if [[ $? -eq 124 ]]; then
-				echo -e "${RED}Timed out: process did not complete within $limit seconds${NC}"
-				echo "Isolation 2 Test $1-client timed out" >> ../outputs/result.txt
-			fi
+		sleep ${limit}
+		for (( j=0; j<$1; j++ )); do
+			client_vm=${client_vms[@]}
+			scp jw22@$client_vm:mp3/${group_folder}/i2-$1-$i-$j.log ../outputs/
 		done
 		timeout -s SIGKILL ${global_limit}s ./client a config.txt < ../isolation/test2/i$1-3-$i.txt > ../outputs/i2-$1-$i.log 2>&1
 		python3 ../isolation/test2/check.py $1 ../outputs/i2-$1-$i
@@ -268,18 +246,15 @@ itest3 () {
 
 	for (( i=0; i<$num_run; i++ )); do
 		echo 'run num: '$i
-		pids=()
 		timeout -s SIGKILL ${global_limit}s ./client a config.txt < ../isolation/test3/i$1-1-$i.txt > ../outputs/i3-$1-$i-00.log 2>&1
 		for (( j=0; j<$1; j++ )); do
-			timeout -s SIGKILL ${limit}s ./client ${clients[$j]} config.txt < ../isolation/test3/i$1-2-$i.txt > ../outputs/i3-$1-$i-$j.log 2>&1 &
-			pids+=($!)
+			client_vm=${client_vms[@]}
+			ssh jw22@$client_vm "cd mp3/${group_folder} && timeout -s SIGKILL ${limit}s ./client ${clients[$j]} config.txt < ../isolation/test3/i$1-2-$i.txt > i3-$1-$i-$j.log 2>&1" &
 		done
-		for pid in ${pids[@]}; do
-			wait $pid
-			if [[ $? -eq 124 ]]; then
-				echo -e "${RED}Timed out: process did not complete within $limit seconds${NC}"
-				echo "Isolation 3 Test $1-client timed out" >> ../outputs/result.txt
-			fi
+		sleep ${limit}
+		for (( j=0; j<$1; j++ )); do
+			client_vm=${client_vms[@]}
+			scp jw22@$client_vm:mp3/${group_folder}/i3-$1-$i-$j.log ../outputs/
 		done
 		timeout -s SIGKILL ${global_limit}s ./client a config.txt < ../isolation/test3/i$1-3-$i.txt > ../outputs/i3-$1-$i.log 2>&1
 		python3 ../isolation/test3/check.py $j ../outputs/i3-$1-$i
@@ -308,21 +283,18 @@ itest4 () {
 	
 	for (( i=0; i<$num_run; i++ )); do
 		echo 'run num: '$i
-		pids=()
 		for (( j=0; j<$1/2; j++ )); do
-			timeout -s SIGKILL ${limit}s ./client ${clients[$j]} config.txt < ../isolation/test4/i$1-1-$i.txt > ../outputs/i4-$1-$i-$j.log 2>&1 &
-			pids+=($!)
+			client_vm=${client_vms[@]}
+			ssh jw22@$client_vm "cd mp3/${group_folder} && timeout -s SIGKILL ${limit}s ./client ${clients[$j]} config.txt < ../isolation/test4/i$1-2-$i.txt > i4-$1-$i-$j.log 2>&1" &
 		done
 		for (( j=$1/2; j<$1; j++ )); do
-			timeout -s SIGKILL ${limit}s ./client ${clients[$j]} config.txt < ../isolation/test4/i$1-2-$i.txt > ../outputs/i4-$1-$i-$j.log 2>&1 &
-			pids+=($!)
+			client_vm=${client_vms[@]}
+			ssh jw22@$client_vm "cd mp3/${group_folder} && timeout -s SIGKILL ${limit}s ./client ${clients[$j]} config.txt < ../isolation/test4/i$1-2-$i.txt > i4-$1-$i-$j.log 2>&1" &
 		done
-		for pid in ${pids[@]}; do
-			wait $pid
-			if [[ $? -eq 124 ]]; then
-				echo -e "${RED}Timed out: process did not complete within $limit seconds${NC}"
-				echo "Isolation 4 $1-client Test timed out" >> ../outputs/result.txt
-			fi
+		sleep ${limit}
+		for (( j=0; j<$1; j++ )); do
+			client_vm=${client_vms[@]}
+			scp jw22@$client_vm:mp3/${group_folder}/i4-$1-$i-$j.log ../outputs/
 		done
 		timeout -s SIGKILL ${global_limit}s ./client a config.txt < ../isolation/test4/i$1-3-$i.txt > ../outputs/i4-$1-$i.log 2>&1
 		python3 ../isolation/test4/check.py $j ../outputs/i4-$1-$i
@@ -345,18 +317,10 @@ dtest () {
 	score=5
 
 	while true; do
-		pids=()
 		timeout -s SIGKILL ${global_limit}s ./client a config.txt < ../deadlock/d0.txt > ../outputs/d0.log 2>&1 &
-		pids+=($!)
-		timeout -s SIGKILL ${global_limit}s ./client b config.txt < ../deadlock/d1.txt > ../outputs/d1.log 2>&1 &
-		pids+=($!)
-		for pid in ${pids[@]}; do
-			wait $pid
-			if [[ $? -eq 124 ]]; then
-				echo -e "${RED}Timed out: process did not complete within $global_limit seconds${NC}"
-				echo "Deadlock Test $1-client timed out" >> ../outputs/result.txt
-			fi
-		done
+		ssh jw22@${client_vms[1]} "timeout -s SIGKILL ${global_limit}s ./client b config.txt < ../deadlock/d1.txt > d1.log 2>&1" &
+		sleep ${global_limit}
+		scp jw22@${client_vms[1]}:mp3/${group_folder}/d1.log ../outputs/
 		python3 ../deadlock/check.py
 		read -p "rerun deadlock test?" yn
 		case $yn in
@@ -374,7 +338,6 @@ dtest () {
 	echo; echo;
 }
 
-checkClients
 
 # Atomicity Tests
 if [[ $run_atomicity -eq 1 ]]; then
@@ -393,7 +356,7 @@ fi
 
 # Isolation Tests
 if [[ $run_isolation -eq 1 ]]; then
-	itest1 2
+	itest2 2
 	itest1 5
 	itest2 2
 	itest2 5
